@@ -10,7 +10,7 @@ defmodule Slack.FakeSlack.Websocket do
   def websocket_init(_type, req, _opts) do
     state = %{}
 
-    pid = Application.get_env(:slack, :pid)
+    pid = Application.get_env(:slack, :test_pid)
     send pid, {:websocket_connected, self()}
 
     {:ok, req, state, @activity_timeout}
@@ -21,7 +21,7 @@ defmodule Slack.FakeSlack.Websocket do
   end
 
   def websocket_handle({:text, message}, req, state) do
-    pid = Application.get_env(:slack, :pid)
+    pid = Application.get_env(:slack, :test_pid)
     send pid, {:bot_message, JSX.decode!(message)}
 
     {:ok, req, state}

@@ -1,5 +1,5 @@
 defmodule Slack.Acceptance.BotTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
   defmodule Bot do
     use Slack
@@ -11,21 +11,46 @@ defmodule Slack.Acceptance.BotTest do
     def handle_event(_, _, state), do: {:ok, state}
   end
 
-  test "can start a connection" do
-    pid = Slack.FakeSlack.start_link()
-    Application.put_env(:slack, :pid, self())
+  test "can connect and respond" do
+    Slack.FakeSlack.start_link()
+    Application.put_env(:slack, :test_pid, self())
 
-    {:ok, pid} =  Slack.Bot.start_link(Bot, [], "xyz")
+    {:ok, _pid} =  Slack.Bot.start_link(Bot, [], "xyz")
 
-    assert_received {:token, "xyz"} # rtm.start method was successful
-    assert_receive {:websocket_connected, websocket_pid} # successfully connected to websocket
+    assert authenticated_with_token?("xyz")
+
+    websocket_pid = get_websocket_pid()
+    assert websocket_pid
 
     send_message_to_client(websocket_pid, "hello!")
-
-    assert_receive {:bot_message, %{"text" => "!olleh"}}
+    assert bot_sent_message?("!olleh")
   end
 
-  def send_message_to_client(pid, message) do
+  defp authenticated_with_token?(token) do
+    receive do
+      {:token, ^token} -> true
+    after
+      100 -> false
+    end
+  end
+
+  defp get_websocket_pid do
+    receive do
+      {:websocket_connected, websocket_pid} -> websocket_pid
+    after
+      100 -> false
+    end
+  end
+
+  defp bot_sent_message?(text) do
+    receive do
+      {:bot_message, %{"text" => ^text}} -> true
+    after
+      100 -> false
+    end
+  end
+
+  defp send_message_to_client(pid, message) do
     send pid, JSX.encode!(%{type: "message", text: message, channel: "C0123abc"})
   end
 end
