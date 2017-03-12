@@ -9,6 +9,10 @@ defmodule Slack.FakeSlack do
     Application.put_env(:slack, :url, "http://localhost:51345")
   end
 
+  def stop do
+    Plug.Adapters.Cowboy.shutdown(Slack.FakeSlack.Router)
+  end
+
   defp dispatch do
     [{
       :_,

@@ -24,6 +24,8 @@ defmodule Slack.Acceptance.BotTest do
 
     send_message_to_client(websocket_pid, "hello!")
     assert bot_sent_message?("!olleh")
+
+    Slack.FakeSlack.stop
   end
 
   defp authenticated_with_token?(token) do
