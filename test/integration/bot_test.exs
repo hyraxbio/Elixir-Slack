@@ -11,21 +11,24 @@ defmodule Slack.Integration.BotTest do
     def handle_event(_, _, state), do: {:ok, state}
   end
 
-  test "can connect and respond" do
+  setup_all do
     Slack.FakeSlack.start_link()
-    Application.put_env(:slack, :test_pid, self())
 
+    on_exit fn ->
+      Slack.FakeSlack.stop()
+    end
+  end
+
+  test "can connect and respond" do
+    Application.put_env(:slack, :test_pid, self())
     {:ok, _pid} =  Slack.Bot.start_link(Bot, [], "xyz")
 
     assert authenticated_with_token?("xyz")
 
     websocket_pid = get_websocket_pid()
-    assert websocket_pid
 
     send_message_to_client(websocket_pid, "hello!")
     assert bot_sent_message?("!olleh")
-
-    Slack.FakeSlack.stop
   end
 
   defp authenticated_with_token?(token) do
