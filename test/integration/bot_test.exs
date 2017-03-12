@@ -1,4 +1,4 @@
-defmodule Slack.Acceptance.BotTest do
+defmodule Slack.Integration.BotTest do
   use ExUnit.Case, async: false
 
   defmodule Bot do
