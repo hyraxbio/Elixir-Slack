@@ -1,4 +1,4 @@
-defmodule Slack.FakeSlackWebsocket do
+defmodule Slack.FakeSlack.Websocket do
   @behaviour :cowboy_websocket_handler
 
   def init(_, _req, _opts) do
